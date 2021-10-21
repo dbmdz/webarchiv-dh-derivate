@@ -11,5 +11,6 @@ services:
       --py-files /aut/aut-0.90.2.zip
       --jars /aut/aut-0.90.2-fatjar.jar
       /extract/main.py
-      --target-instance-list /out/TargetInstanceIDs
-      --type noboilerplate
+      --derivative tweet
+      --warc
+      /in/warcs
