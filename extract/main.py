@@ -73,6 +73,7 @@ def main(derivative, input_type, file):
                     if extract_path.exists():
                         rmtree(str(extract_path))
 
+                # workaround for https://github.com/archivesunleashed/aut/issues/317:
                 # process WARCs individually if total size exceeds limit
                 target_instance_size = sum(
                     warc.stat().st_size
