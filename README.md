@@ -1,76 +1,73 @@
-# Derivate mit dem Archives Unleashed Toolkit
-Das Containerformat WARC, in dem Daten bei der Webarchivierung abgelegt werden, enthält all die unterschiedlichen
-Datentypen, die eine Website ausmachen: zum Beispiel HTML- und Javascript-Dateien, aber auch Bilder oder PDF-Dateien.
-Der erste Schritt vor einer Analyse ist deshalb typischerweise die Filterung und Extraktion bestimmter Daten aus der ursprünglichen
-WARC-Datei und die Erzeugung von abgeleiteten Datensets. Werkzeuge wie das [Archives Unleashed Toolkit (AUT)](https://archivesunleashed.org/)
-wurden speziell für diesen Schritt entwickelt.  
-Die Skripte in diesem Repository nutzen das Archives Unleashed Toolkit, um Text-, Link- und Tweetdaten aus den gecrawlten
-Websites zu extrahieren und als CSV-Dateien bzw. JSON-Dateien für die weitere Analyse zu speichern.
+# Generating derivative datasets with the Archives Unleashed Toolkit
+When a website is archived, the different files that make up the website are typically saved in a WARC file. A WARC
+file may therefore contain many different file types, ranging from HTML and Javascript files to images or PDF files.
+Before you start analyzing an archived website, the first step is generally to extract specific 
+types of data from the original WARC files, for which you can use tools like the [Archives Unleashed Toolkit](https://archivesunleashed.org/).  
+The script in this repository uses the Archives Unleashed Toolkit to extract plain text, links and tweets from archived
+websites and stores them as CSV or JSON files for further analysis.
 
-## Welche Daten können extrahiert werden?
+## What can be extracted?
 ### Tweets
-* **Felder**:
+* **fields**:
   * tweet_time (%Y%m%d%H%M, UTC),
   * tweet_author,
-  * retweeter (falls vorhanden),
+  * retweeter (if available),
   * tweet_text,
   * hashtags,
   * mentioned_users,
   * link_destinations,
-  * action_stats (Zahl der Retweets, Replies, Favorites für den Tweet zum Crawlzeitpunkt)
-* **Format**: JSONLines, jede Zeile entspricht einem Tweet
-* **Befehl**: `--derivative tweet`
-* **Bemerkung**: Tweets können auf verschiedene Weise archiviert werden: Daten können über die Twitter API 
-  abgefragt oder Twitter-Webseiten mit Werkzeugen wie [ArchiveWeb.page](https://archiveweb.page/) über den Browser 
-  archiviert werden. Bei dem letztgenannten Ansatz ruft die Nutzerin die gewünschte Twitter-Webseite im Browser auf und 
-  steuert über ihre Interaktionen, was im Browser dargestellt und archiviert wird.
-  Im Gegensatz zur Abfrage von Daten über die API wird dabei auch das Look-and-Feel der Webseite mit
-  erfasst und kann später wiedergegeben werden. Das bedeutet jedoch auch, dass verschiedene Arten von Daten gesammelt in
-  einer WARC-Datei abgelegt werden und nicht strukturiert vorliegen. Die Skripte in diesem Repository extrahieren aus den 
-  WARC-Dateien strukturierte Daten zu einzelnen Tweets für die anschließende computergestützte Analysen.
+  * action_stats (number of retweets, replies, favorites at the time the tweet was archived)
+* **format**: JSONLines, every line represents a tweet
+* **command**: `--derivative tweet`
+* **comment**: Tweets can be archived in different ways: You can query the Twitter API for data or you can archive Twitter 
+  websites using browser-based tools like [ArchiveWeb.page](https://archiveweb.page/). In the latter case, you would
+  open the website and determine what should be archived by interacting with the website in your browser (e.g. scrolling down
+  to load older content).
+  With this approach you are also able to capture the look-and-feel of the website and replay it at a later time. This means,
+  however, that different kinds of data will be stored in a WARC file and you will not get structured data for
+  individual tweets. The scripts in this repository extracts structured data for individual tweets from WARC files for
+  computational analysis.
 
-### Linkgraph
-* **Schema**: Crawldatum (YYYYMMDD), Quellhost, Zielhost, Häufigkeit
-* **Format**: CSV
-* **Befehl**: `--derivative linkgraph`
-* **Bemerkungen**: Intrinsische Links (eine Domain verweist auf sich selbst) sind nicht enthalten.
+### Link graph
+* **schema**: crawl date (YYYYMMDD), source host, destination host, frequency
+* **format**: CSV
+* **command**: `--derivative linkgraph`
+* **comment**: intrinsic links (host links back to itself) are not included
 
-### Plaintext
-* **Schema**: Crawldatum (YYYYMMDD), URL, Sprachcode, Textinhalt
-* **Format**: CSV
-* **Befehl**: `--derivative plaintext`
-* **Bemerkungen**: HTTP Header und HTML Mark-up sind nicht im Text enthalten, Boilerplate-Inhalte wie Navigation dagegen
-  schon.
+### Plain text
+* **schema**: crawl date (YYYYMMDD), URL, language code, plain text
+* **format**: CSV
+* **command**: `--derivative plaintext`
+* **comment**: HTTP headers und HTML Mark-up are not included in the output, boilerplate content like navigation is
 
-### Plaintext ohne Boilerplate-Inhalte
-* **Schema**: Crawldatum (YYYYMMDD), URL, Sprachcode, Textinhalt
-* **Format**: CSV
-* **Befehl**: `--derivative noboilerplate`
-* **Bemerkungen**: Entspricht dem Plaintext Derivat, allerdings werden hier Boilerplate Inhalte mit der entsprechenden 
-[AUT-Funktion](https://aut.docs.archivesunleashed.org/docs/text-analysis#extract-plain-text-minus-boilerplate) entfernt.
+### Plain text without boilerplate content
+* **schema**: crawl date (YYYYMMDD), URL, language code, plain text
+* **format**: CSV
+* **command**: `--derivative noboilerplate`
+* **comment**: Like the plain text extract, but boilerplate content is removed using the corresponding [function in AUT](https://aut.docs.archivesunleashed.org/docs/text-analysis#extract-plain-text-minus-boilerplate)
 
-## Wie extrahiere ich die Daten?
-Das Skript unterscheidet bei den auszuwertenden Daten zwischen Zeitschnitten (`--target-instance`) und einzelnen WARC-Dateien (`--warc`).
-Ein Zeitschnitt besteht aus mehreren WARC-Dateien, die in der folgenden Struktur abgelegt sind:
+## How do I extract data?
+The script distinguishes between target instances (`--target-instance`) and single WARC files (`--warc`) as input.
+A target instance consists of multiple WARC files and is organized as follows:
 ```shell
-Eingabeverzeichnis
-|- Zeitschnitt1
+input directory
+|- target_instance_1
     |- arcs
         |- XY-1.warc.gz
         |- XY-2.warc.gz
         |- ...
-|- Zeitschnitt2
+|- target_instance_2
     |- arcs
         |- XY-1.warc.gz
         |- XY-2.warc.gz
         |- ...
     
 ```
-Bei Zeitschnitten wird ein Derivat pro Zeitschnitt erzeugt, in dem die Daten aus den zugehörigen WARCs zusammengefasst sind.  
-Bei WARCs wird ein Derivat pro WARC-Datei erzeugt.  
-Liste die Namen der Zeitschnitte bzw. WARC-Dateien, die ausgewertet sollen, untereinander in einer Textdatei auf und 
-übergebe die Datei als Argument. Gebe zusätzlich an, ob es sich bei den aufgelisteten Namen um Zeitschnitte (`--target-instance`)
-oder WARCs (`--warc`) handelt und welches Derivat erzeugt werden soll (`--derivative`). 
+The script creates one output file per target instance, which contains data from all the corresponding WARC files.  
+List the names of the target instances or WARC files you want to process in a text file and pass the file as an argument 
+on the command line.  
+Specify additionally whether the names listed are target instances (`--target-instance`) or WARCs (`--warc`) and what 
+kind of data you want to extract (`--derivative`).  
 In `docker-compose.yml`:
 ```
     command: >-
@@ -83,10 +80,10 @@ In `docker-compose.yml`:
       --target-instance
       /out/TargetInstanceIDs
 ```
-Definiere Ein- und Ausgabeverzeichnisse in `docker-compose.yml`:
+Specify input and output directories in `docker-compose.yml`:
 ```
     volumes:
       - /path/to/warcs:/in:ro
       - /path/to/store/results:/out:rw
 ```
-Starte Extraktion im Docker Container mit `docker-compose up`.
+Start processing in the Docker container with `docker-compose up`.
